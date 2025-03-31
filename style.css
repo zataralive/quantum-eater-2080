@@ -1,0 +1,232 @@
+/* style.css - Estilo 2080 Æther - Pacman Like */
+
+:root {
+  /* Paleta (Mesma dos anteriores) */
+  --space-bg-start: #05030a;
+  --space-bg-end: #110b1f;
+  --core-glow-start: rgba(180, 100, 255, 0.8);
+  --core-glow-end: rgba(0, 200, 255, 0.8);
+  --text-primary: rgba(240, 240, 255, 0.9);
+  --text-secondary: rgba(180, 190, 220, 0.6);
+  --accent-gradient: linear-gradient(90deg, var(--core-glow-start), var(--core-glow-end));
+  --control-bg: rgba(20, 15, 35, 0.6);
+  --control-border: rgba(100, 120, 180, 0.3);
+  --button-active-bg: rgba(255, 255, 255, 0.1);
+  --wall-color: rgba(0, 180, 220, 0.4); /* Azulado para paredes */
+  --wall-glow: rgba(0, 200, 255, 0.5);
+  --dot-color: rgba(200, 200, 255, 0.7);
+  --dot-glow: rgba(220, 220, 255, 0.5);
+  --power-pellet-color: rgba(255, 255, 100, 0.9); /* Amarelo para power pellet */
+  --power-pellet-glow: rgba(255, 255, 100, 0.7);
+  --player-color: #ffd700; /* Dourado/Amarelo para player */
+  --player-glow: rgba(255, 215, 0, 0.6);
+  --ghost-red: #ff4d4d; --ghost-red-glow: rgba(255, 77, 77, 0.6);
+  --ghost-pink: #ff95ca; --ghost-pink-glow: rgba(255, 149, 202, 0.6);
+  --ghost-cyan: #82f0f0; --ghost-cyan-glow: rgba(130, 240, 240, 0.6);
+  --ghost-orange: #ffbe4d; --ghost-orange-glow: rgba(255, 190, 77, 0.6);
+  --frightened-color: #6da0ff; --frightened-glow: rgba(109, 160, 255, 0.6);
+  --game-over-glow: rgba(255, 77, 77, 0.6);
+  --win-glow: rgba(0, 255, 150, 0.6);
+}
+
+/* Keyframes */
+@keyframes backgroundShift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+@keyframes subtlePulse { 0%,100%{opacity:.8;transform:scale(1)} 50%{opacity:1;transform:scale(1.01)} }
+@keyframes energyFlow { from{background-position:-200% center} to{background-position:200% center} }
+@keyframes powerPelletPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 8px var(--power-pellet-glow); }
+    50% { transform: scale(1.15); box-shadow: 0 0 15px var(--power-pellet-glow), 0 0 25px var(--power-pellet-glow); }
+}
+@keyframes frightenedFlash { /* Para fantasmas piscando antes de voltar ao normal */
+  0%, 100% { background-color: var(--frightened-color); box-shadow: 0 0 8px var(--frightened-glow);}
+  50% { background-color: #ddd; box-shadow: 0 0 8px #fff; } /* Pisca branco */
+}
+
+
+/* --- Estilos Base --- */
+body {
+  background: linear-gradient(135deg, var(--space-bg-start), var(--space-bg-end) 70%, var(--space-bg-start));
+  background-size: 200% 200%;
+  font-family: 'Poppins', sans-serif; color: var(--text-primary);
+  display: flex; justify-content: center; align-items: center;
+  min-height: 100vh; margin: 0; overflow: hidden;
+}
+.background-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; }
+
+/* --- Container Principal --- */
+.game-container {
+  width: auto; /* Ajusta ao conteúdo */
+  padding: 25px; text-align: center; position: relative; border-radius: 25px;
+  background: radial-gradient(ellipse at center, rgba(15, 10, 28, 0.7) 0%, rgba(10, 5, 20, 0.2) 70%, transparent 100%);
+}
+.energy-core::before {
+  content: ''; position: absolute; inset: -2px; border-radius: 27px;
+  background: linear-gradient(90deg, var(--core-glow-start), var(--core-glow-end), var(--core-glow-start));
+  background-size: 300% 100%; filter: blur(8px); animation: energyFlow 8s linear infinite;
+  z-index: -1; opacity: 0.6;
+}
+
+.title {
+  font-family: 'Orbitron', sans-serif; font-weight: 400; font-size: 1.7em; letter-spacing: 3px;
+  color: var(--text-primary); margin-bottom: 20px;
+  text-shadow: 0 0 10px var(--core-glow-start), 0 0 20px var(--core-glow-end);
+  animation: subtlePulse 7s ease-in-out infinite;
+}
+
+/* --- Informações do Jogo --- */
+.game-info {
+  display: flex; justify-content: space-between; /* Espaça Score e Vidas */
+  margin-bottom: 20px; font-family: 'Poppins', sans-serif; font-weight: 300;
+  font-size: 0.9em; color: var(--text-secondary); letter-spacing: 1px; padding: 0 10px;
+}
+.info-item span { font-weight: 600; color: var(--text-primary); min-width: 50px; display: inline-block; text-align: right;}
+
+/* --- Tabuleiro --- */
+.game-board {
+  display: grid;
+  /* grid-template-columns e rows serão definidos pelo JS */
+  /* Ex: grid-template-columns: repeat(21, 20px); */
+  /* Ex: grid-template-rows: repeat(21, 20px); */
+  border: 1px solid var(--control-border);
+  box-shadow: 0 0 15px var(--core-glow-end);
+  position: relative; /* Para posicionar personagens */
+  background-color: rgba(5, 3, 10, 0.8); /* Fundo escuro pro tabuleiro */
+  margin: 0 auto; /* Centraliza o tabuleiro se o container for maior */
+}
+
+/* --- Células do Tabuleiro --- */
+.cell {
+  position: relative; /* Para posicionar pontos dentro */
+  width: 20px; /* Tamanho da célula - DEVE CORRESPONDER AO JS */
+  height: 20px; /* Tamanho da célula - DEVE CORRESPONDER AO JS */
+  /* border: 1px solid rgba(255, 255, 255, 0.05); */ /* Debug border */
+}
+
+.wall {
+  background-color: var(--wall-color);
+  box-shadow: inset 0 0 5px var(--wall-glow), 0 0 3px var(--wall-glow);
+  border-radius: 2px; /* Leve arredondamento */
+}
+
+/* Ponto/Pellet */
+.dot::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 4px; height: 4px;
+  background-color: var(--dot-color);
+  border-radius: 50%;
+  box-shadow: 0 0 4px var(--dot-glow), 0 0 6px var(--dot-glow);
+}
+
+/* Power Pellet */
+.power-pellet::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px; height: 10px;
+  background-color: var(--power-pellet-color);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--power-pellet-glow);
+  animation: powerPelletPulse 1s ease-in-out infinite;
+}
+
+/* --- Personagens --- */
+.character { /* Estilo base para player e fantasmas */
+    position: absolute; /* Posicionado sobre o grid */
+    width: 18px; /* Pouco menor que a célula */
+    height: 18px;
+    /* top e left serão definidos pelo JS */
+    border-radius: 50%;
+    z-index: 10;
+    transition: top 0.1s linear, left 0.1s linear; /* Transição SUAVE de movimento */
+    /* transition: transform 0.1s linear; */ /* Alternativa se usar transform */
+}
+
+.player {
+    background-color: var(--player-color);
+    box-shadow: 0 0 6px var(--player-glow), 0 0 10px var(--player-glow);
+    /* Simulação boca (simples) */
+    /* border-right: 3px solid var(--space-bg-start); */
+}
+/* Adicionar classes .up, .down, .left, .right para mudar a 'boca' se desejar */
+
+.ghost {
+    /* border-radius: 40% 40% 30% 30%; */ /* Formato fantasma (opcional) */
+    box-shadow: 0 0 6px, 0 0 10px; /* Sombra será definida por variável */
+}
+
+/* Cores específicas dos fantasmas */
+.ghost.blinky { background-color: var(--ghost-red); box-shadow: 0 0 6px var(--ghost-red-glow), 0 0 10px var(--ghost-red-glow); }
+.ghost.pinky { background-color: var(--ghost-pink); box-shadow: 0 0 6px var(--ghost-pink-glow), 0 0 10px var(--ghost-pink-glow); }
+.ghost.inky { background-color: var(--ghost-cyan); box-shadow: 0 0 6px var(--ghost-cyan-glow), 0 0 10px var(--ghost-cyan-glow); }
+.ghost.clyde { background-color: var(--ghost-orange); box-shadow: 0 0 6px var(--ghost-orange-glow), 0 0 10px var(--ghost-orange-glow); }
+
+/* Fantasma assustado */
+.ghost.frightened {
+    background-color: var(--frightened-color);
+    box-shadow: 0 0 8px var(--frightened-glow);
+    transition: background-color 0.1s ease, box-shadow 0.1s ease;
+}
+/* Fantasma piscando antes de voltar ao normal */
+.ghost.frightened.ending {
+    animation: frightenedFlash 0.3s infinite;
+}
+
+/* --- Mensagens Overlay --- */
+.overlay-message {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 30px 40px;
+    background-color: rgba(10, 5, 20, 0.9);
+    border: 1px solid var(--control-border);
+    border-radius: 15px;
+    z-index: 100;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(0,0,0, 0.5);
+}
+#start-message {
+    color: var(--text-primary);
+    font-size: 1.1em;
+    text-shadow: 0 0 8px var(--core-glow-end);
+}
+#game-over-message {
+    border-color: var(--game-over-glow);
+    box-shadow: 0 0 15px var(--game-over-glow), 0 0 25px var(--game-over-glow);
+}
+#win-message {
+     border-color: var(--win-glow);
+     box-shadow: 0 0 15px var(--win-glow), 0 0 25px var(--win-glow);
+}
+
+.overlay-message h2 {
+    font-family: 'Orbitron', sans-serif;
+    margin-bottom: 15px;
+    letter-spacing: 2px;
+}
+#game-over-message h2 { color: var(--ghost-red); text-shadow: 0 0 8px var(--game-over-glow);}
+#win-message h2 { color: #0f0; text-shadow: 0 0 8px var(--win-glow); } /* Verde para vitória */
+
+.overlay-message p {
+    margin-bottom: 25px;
+    color: var(--text-secondary);
+    font-size: 1em;
+}
+.overlay-message span { color: var(--text-primary); font-weight: 600; }
+
+/* Botão de Reset (Adaptação) */
+.reset-button {
+  /* Reutiliza a maioria dos estilos de .core-button */
+  background: transparent; border: 1px solid var(--control-border); color: var(--text-secondary);
+  border-radius: 8px; padding: 12px 25px; font-family: 'Poppins', sans-serif;
+  font-weight: 300; font-size: 0.9em; letter-spacing: 1.5px; cursor: pointer;
+  transition: all 0.3s ease; outline: none; position: relative; overflow: hidden;
+  margin-top: 10px;
+}
+.reset-button::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(180, 100, 255, 0.3), transparent); transition: left 0.4s ease; }
+.reset-button:hover { color: var(--text-primary); border-color: var(--text-secondary); box-shadow: 0 0 10px rgba(180, 100, 255, 0.2), 0 0 15px rgba(0, 200, 255, 0.2); }
+.reset-button:hover::before { left: 100%; }
+.reset-button:active { background: var(--button-active-bg); transform: scale(0.98); }

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum Eater // 2080 Æther</title> <!-- Corrigido o fechamento da tag title -->
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@100;200;300;400&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-layer"></div>
+    <div class="game-container energy-core">
+        <h1 class="title">QUANTUM EATER :: 2080</h1>
+        <div class="game-info">
+             <!-- VERIFIQUE ESTES IDs -->
+            <div class="info-item">Score: <span id="score">0</span></div>
+            <div class="info-item">Vidas: <span id="lives">3</span></div>
+        </div>
+         <!-- VERIFIQUE ESTE ID -->
+        <div class="game-board" id="game-board">
+            <!-- Conteúdo gerado pelo script.js -->
+        </div>
+         <!-- VERIFIQUE ESTES IDs -->
+        <div class="overlay-message" id="start-message">
+             Pressione qualquer tecla de seta para iniciar
+        </div>
+        <div class="overlay-message" id="game-over-message" style="display: none;">
+            <h2>// FIM DA TRANSMISSÃO //</h2>
+            <p>Score Final: <span id="final-score">0</span></p>
+            <button id="reset-button" class="core-button reset-button">:: REINICIALIZAR PROTOCOLO ::</button>
+        </div>
+         <div class="overlay-message" id="win-message" style="display: none;">
+            <h2>// CAMPO ENERGÉTICO LIMPO //</h2>
+            <p>Score Final: <span id="win-score">0</span></p>
+            <button id="win-reset-button" class="core-button reset-button">:: NOVO CAMPO ::</button>
+        </div>
+    </div>
+     <!-- VERIFIQUE ESTE NOME DE ARQUIVO -->
+    <script src="script.js"></script>
+</body>
+</html>
