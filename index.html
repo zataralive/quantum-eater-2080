@@ -2,8 +2,9 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantum Eater // 2080 Æther</title> <!-- Corrigido o fechamento da tag title -->
+    <!-- Essencial para Mobile: controla viewport e evita zoom inicial -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Quantum Eater // 2080 Æther</title>
     <link rel="stylesheet" href="style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,17 +15,24 @@
     <div class="game-container energy-core">
         <h1 class="title">QUANTUM EATER :: 2080</h1>
         <div class="game-info">
-             <!-- VERIFIQUE ESTES IDs -->
             <div class="info-item">Score: <span id="score">0</span></div>
             <div class="info-item">Vidas: <span id="lives">3</span></div>
         </div>
-         <!-- VERIFIQUE ESTE ID -->
         <div class="game-board" id="game-board">
             <!-- Conteúdo gerado pelo script.js -->
         </div>
-         <!-- VERIFIQUE ESTES IDs -->
+
+        <!-- Controles de Toque -->
+        <div class="touch-controls" id="touch-controls">
+            <button id="btn-up" class="control-button arrow-up">▲</button>
+            <button id="btn-left" class="control-button arrow-left">◀</button>
+            <button id="btn-down" class="control-button arrow-down">▼</button>
+            <button id="btn-right" class="control-button arrow-right">▶</button>
+        </div>
+        <!-- Fim dos Controles de Toque -->
+
         <div class="overlay-message" id="start-message">
-             Pressione qualquer tecla de seta para iniciar
+             Pressione um direcional (tela ou teclado) para iniciar
         </div>
         <div class="overlay-message" id="game-over-message" style="display: none;">
             <h2>// FIM DA TRANSMISSÃO //</h2>
@@ -37,7 +45,6 @@
             <button id="win-reset-button" class="core-button reset-button">:: NOVO CAMPO ::</button>
         </div>
     </div>
-     <!-- VERIFIQUE ESTE NOME DE ARQUIVO -->
     <script src="script.js"></script>
 </body>
 </html>
