@@ -1,6 +1,5 @@
-// script.js (Pacman Like - V3 - Foco na Inicialização Segura)
+// script.js (Pacman Like - V4 - Mobile Controls)
 
-// Espera o HTML carregar
 document.addEventListener('DOMContentLoaded', () => {
     console.log(">>> DOMContentLoaded event fired. Initializing script.");
 
@@ -15,19 +14,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const winMessage = document.getElementById('win-message');
     const winScoreElement = document.getElementById('win-score');
     const winResetButton = document.getElementById('win-reset-button');
+    // Seleciona os botões de toque
+    const btnUp = document.getElementById('btn-up');
+    const btnDown = document.getElementById('btn-down');
+    const btnLeft = document.getElementById('btn-left');
+    const btnRight = document.getElementById('btn-right');
 
-    // VERIFICAÇÃO CRUCIAL: Garante que todos os elementos foram encontrados
-    if (!boardElement) { console.error("CRITICAL ERROR: Element with ID 'game-board' not found!"); return; }
-    if (!scoreElement) { console.error("CRITICAL ERROR: Element with ID 'score' not found!"); return; }
-    if (!livesElement) { console.error("CRITICAL ERROR: Element with ID 'lives' not found!"); return; }
-    if (!startMessage) { console.error("CRITICAL ERROR: Element with ID 'start-message' not found!"); return; }
-    if (!gameOverMessage) { console.error("CRITICAL ERROR: Element with ID 'game-over-message' not found!"); return; }
-    if (!finalScoreElement) { console.error("CRITICAL ERROR: Element with ID 'final-score' not found!"); return; }
-    if (!resetButton) { console.error("CRITICAL ERROR: Element with ID 'reset-button' not found!"); return; }
-    if (!winMessage) { console.error("CRITICAL ERROR: Element with ID 'win-message' not found!"); return; }
-    if (!winScoreElement) { console.error("CRITICAL ERROR: Element with ID 'win-score' not found!"); return; }
-    if (!winResetButton) { console.error("CRITICAL ERROR: Element with ID 'win-reset-button' not found!"); return; }
-
+    // VERIFICAÇÃO CRUCIAL
+    if (!boardElement || !scoreElement || !livesElement || !startMessage ||
+        !gameOverMessage || !finalScoreElement || !resetButton || !winMessage ||
+        !winScoreElement || !winResetButton || !btnUp || !btnDown || !btnLeft || !btnRight) {
+        console.error("CRITICAL ERROR: One or more essential HTML elements not found! Check IDs.");
+        // Opcional: Mostrar erro na tela
+        if (startMessage) startMessage.textContent = "Erro Crítico! Verifique o Console (F12).";
+        return; // Impede a execução do resto do script
+    }
     console.log(">>> All essential HTML elements found successfully.");
 
     // --- Constantes e Layout (Mesmo de antes) ---
@@ -81,15 +82,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Classes (Character, Player, Ghost) ---
     // Cole as definições completas das classes aqui (Character, Player, Ghost)
-    // Elas são relativamente longas, use as da resposta anterior.
-    // Adicionei uma verificação no construtor Character acima.
     class Character { /* ... Colar definição completa ... */
         constructor(className, startX, startY, speed) {
              if (!boardElement) { console.error("Board element not found when creating Character!"); return; }
             this.x = startX; this.y = startY; this.speed = speed;
             this.element = document.createElement('div'); this.element.className = `character ${className}`;
             this.updatePosition(); boardElement.appendChild(this.element);
-            // console.log(`Character ${className} created at ${startX},${startY}`);
         }
         updatePosition() { this.element.style.left = `${this.x*CELL_SIZE}px`; this.element.style.top = `${this.y*CELL_SIZE}px`; }
         getNextPosition(direction) { let nX=this.x, nY=this.y; switch(direction){case 'up':nY--;break; case 'down':nY++;break; case 'left':nX--;break; case 'right':nX++;break;} if(nX<0)nX=GRID_WIDTH-1;else if(nX>=GRID_WIDTH)nX=0; if(nY<0)nY=GRID_HEIGHT-1;else if(nY>=GRID_HEIGHT)nY=0; return {x:nX, y:nY}; }
@@ -108,9 +106,9 @@ document.addEventListener('DOMContentLoaded', () => {
         respawn() { this.x=this.spawnPoint.x; this.y=this.spawnPoint.y; this.setFrightened(false); this.direction=['up','down','left','right'][Math.floor(Math.random()*4)]; this.updatePosition(); }
     }
 
-    // --- Funções do Jogo (createBoard, updateScore, etc.) ---
-    // Cole as definições completas das funções aqui
-    // Elas são relativamente longas, use as da resposta anterior.
+
+    // --- Funções do Jogo (Principais) ---
+
     function createBoard() { /* ... Colar definição completa ... */
         console.log(">>> Running createBoard()");
         try { boardElement.innerHTML = ''; dotsCount = 0; boardElement.style.gridTemplateColumns = `repeat(${GRID_WIDTH}, ${CELL_SIZE}px)`; boardElement.style.gridTemplateRows = `repeat(${GRID_HEIGHT}, ${CELL_SIZE}px)`; boardElement.style.width = `${GRID_WIDTH * CELL_SIZE}px`; boardElement.style.height = `${GRID_HEIGHT * CELL_SIZE}px`;
@@ -118,35 +116,61 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`>>> Board created. Dots: ${dotsCount}`);
         } catch(e){ console.error("Error in createBoard:", e); }
     }
+
     function updateScore(amount) { score += amount; scoreElement.textContent = score; }
     function updateLives(amount) { lives += amount; livesElement.textContent = lives; if(lives <= 0 && !isGameOver){ gameOver(); } }
-    function handleInput(e) { if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)){ e.preventDefault(); if(!gameInterval && !isGameOver){ startGameLoop(); } if(gameInterval){ switch(e.key){ case 'ArrowUp':nextDirection='up';break; case 'ArrowDown':nextDirection='down';break; case 'ArrowLeft':nextDirection='left';break; case 'ArrowRight':nextDirection='right';break; } } } }
-    function checkCollisions() { ghosts.forEach(ghost=>{if(player.x===ghost.x && player.y===ghost.y){if(ghost.isFrightened){ghost.respawn(); updateScore(P_GHOST_SCORE * (2**frightenedGhostsEaten)); frightenedGhostsEaten++;}else if(!isGameOver){playerLosesLife();}}}); player.handleEat(); }
-    function playerLosesLife() { console.log("Player losing life..."); stopGameLoop(); updateLives(-1); if(!isGameOver){ setTimeout(()=>{ resetPositions(); if(!isGameOver){ startGameLoop();} }, 1500); } }
-    function resetPositions() { const pSpawn={x:10, y:16}; player.x=pSpawn.x; player.y=pSpawn.y; player.updatePosition(); currentDirection=''; nextDirection=''; const gSpawns=[{x:9,y:10},{x:10,y:10},{x:11,y:10},{x:10,y:9}]; ghosts.forEach((ghost,idx)=>{const spawn=gSpawns[idx%gSpawns.length]; ghost.x=spawn.x; ghost.y=spawn.y; ghost.setFrightened(false); ghost.direction=['up','down','left','right'][Math.floor(Math.random()*4)]; ghost.updatePosition();}); console.log("Positions reset."); }
-    function activatePowerPellet() { console.log("Power Pellet Active!"); clearTimeout(powerPelletTimer); clearTimeout(powerPelletEndingTimer); isPowerPelletActive=true; frightenedGhostsEaten=0; ghosts.forEach(g=>g.setFrightened(true)); powerPelletTimer=setTimeout(()=>{isPowerPelletActive=false; ghosts.forEach(g=>g.setFrightened(false));}, POWER_PELLET_DURATION); powerPelletEndingTimer=setTimeout(()=>{if(isPowerPelletActive){ghosts.forEach(g=>g.setEndingFrightened(true));}}, POWER_PELLET_DURATION - FRIGHTENED_ENDING_TIME); }
-    function checkWinCondition() { if(dotsCount <= 0 && !isGameOver){ winGame(); } }
-    function gameLoop() { if(isGameOver){ stopGameLoop(); return; } player.move(); ghosts.forEach(ghost => ghost.move()); checkCollisions(); checkWinCondition(); }
-    function stopGameLoop() { if(gameInterval){ /* console.log("Stopping loop"); */ clearInterval(gameInterval); gameInterval=null; } startMessage.style.display='none'; }
-    function startGameLoop() { if(isGameOver) return; if(!gameInterval){ console.log(">>> Starting game loop"); startMessage.style.display='none'; gameInterval=setInterval(gameLoop, 170); } }
-    function gameOver() { console.log(">>> GAME OVER <<<"); isGameOver=true; stopGameLoop(); clearTimeout(powerPelletTimer); clearTimeout(powerPelletEndingTimer); finalScoreElement.textContent=score; gameOverMessage.style.display='flex'; }
-    function winGame() { console.log(">>> PLAYER WINS <<<"); isGameOver=true; stopGameLoop(); clearTimeout(powerPelletTimer); clearTimeout(powerPelletEndingTimer); winScoreElement.textContent=score; winMessage.style.display='flex'; }
+
+    // NOVA Função para definir direção e iniciar jogo
+    function setDirectionAndStart(direction) {
+        if (!gameInterval && !isGameOver) { // Inicia o jogo se parado
+            startGameLoop();
+        }
+        if (gameInterval && !isGameOver) { // Define a próxima direção se o jogo estiver rodando
+            nextDirection = direction;
+        }
+    }
+
+    // Função de Input do Teclado (chama a nova função)
+    function handleKeyboardInput(e) {
+        let direction = null;
+        switch (e.key) {
+            case 'ArrowUp':    direction = 'up'; break;
+            case 'ArrowDown':  direction = 'down'; break;
+            case 'ArrowLeft':  direction = 'left'; break;
+            case 'ArrowRight': direction = 'right'; break;
+        }
+        if (direction) {
+            e.preventDefault(); // Evita rolagem da página com as setas
+            setDirectionAndStart(direction);
+        }
+    }
+
+    // --- Outras Funções do Jogo (Colar completas da resposta anterior) ---
+    function checkCollisions() { /* ... Colar definição completa ... */ ghosts.forEach(ghost=>{if(player.x===ghost.x && player.y===ghost.y){if(ghost.isFrightened){ghost.respawn(); updateScore(P_GHOST_SCORE * (2**frightenedGhostsEaten)); frightenedGhostsEaten++;}else if(!isGameOver){playerLosesLife();}}}); player.handleEat(); }
+    function playerLosesLife() { /* ... Colar definição completa ... */ console.log("Player losing life..."); stopGameLoop(); updateLives(-1); if(!isGameOver){ setTimeout(()=>{ resetPositions(); if(!isGameOver){ startGameLoop();} }, 1500); } }
+    function resetPositions() { /* ... Colar definição completa ... */ const pSpawn={x:10, y:16}; player.x=pSpawn.x; player.y=pSpawn.y; player.updatePosition(); currentDirection=''; nextDirection=''; const gSpawns=[{x:9,y:10},{x:10,y:10},{x:11,y:10},{x:10,y:9}]; ghosts.forEach((ghost,idx)=>{const spawn=gSpawns[idx%gSpawns.length]; ghost.x=spawn.x; ghost.y=spawn.y; ghost.setFrightened(false); ghost.direction=['up','down','left','right'][Math.floor(Math.random()*4)]; ghost.updatePosition();}); console.log("Positions reset."); }
+    function activatePowerPellet() { /* ... Colar definição completa ... */ console.log("Power Pellet Active!"); clearTimeout(powerPelletTimer); clearTimeout(powerPelletEndingTimer); isPowerPelletActive=true; frightenedGhostsEaten=0; ghosts.forEach(g=>g.setFrightened(true)); powerPelletTimer=setTimeout(()=>{isPowerPelletActive=false; ghosts.forEach(g=>g.setFrightened(false));}, POWER_PELLET_DURATION); powerPelletEndingTimer=setTimeout(()=>{if(isPowerPelletActive){ghosts.forEach(g=>g.setEndingFrightened(true));}}, POWER_PELLET_DURATION - FRIGHTENED_ENDING_TIME); }
+    function checkWinCondition() { /* ... Colar definição completa ... */ if(dotsCount <= 0 && !isGameOver){ winGame(); } }
+    function gameLoop() { /* ... Colar definição completa ... */ if(isGameOver){ stopGameLoop(); return; } player.move(); ghosts.forEach(ghost => ghost.move()); checkCollisions(); checkWinCondition(); }
+    function stopGameLoop() { /* ... Colar definição completa ... */ if(gameInterval){ clearInterval(gameInterval); gameInterval=null; } startMessage.style.display='none'; }
+    function startGameLoop() { /* ... Colar definição completa ... */ if(isGameOver) return; if(!gameInterval){ console.log(">>> Starting game loop"); startMessage.style.display='none'; gameInterval=setInterval(gameLoop, 170); } }
+    function gameOver() { /* ... Colar definição completa ... */ console.log(">>> GAME OVER <<<"); isGameOver=true; stopGameLoop(); clearTimeout(powerPelletTimer); clearTimeout(powerPelletEndingTimer); finalScoreElement.textContent=score; gameOverMessage.style.display='flex'; }
+    function winGame() { /* ... Colar definição completa ... */ console.log(">>> PLAYER WINS <<<"); isGameOver=true; stopGameLoop(); clearTimeout(powerPelletTimer); clearTimeout(powerPelletEndingTimer); winScoreElement.textContent=score; winMessage.style.display='flex'; }
     function resetGame() { /* ... Colar definição completa ... */
         console.log(">>> Resetting Game <<<");
         stopGameLoop(); isGameOver=false; score=0; lives=3; currentDirection=''; nextDirection=''; isPowerPelletActive=false; clearTimeout(powerPelletTimer); clearTimeout(powerPelletEndingTimer); frightenedGhostsEaten=0;
-        updateScore(0); updateLives(0); gameOverMessage.style.display='none'; winMessage.style.display='none'; startMessage.style.display='block';
+        updateScore(0); updateLives(0); gameOverMessage.style.display='none'; winMessage.style.display='none'; startMessage.style.display='block'; startMessage.textContent = "Pressione um direcional (tela ou teclado) para iniciar"; startMessage.style.color = ''; // Reset color
 
-        // Limpa personagens antigos do DOM e do array
         if (player && player.element) player.element.remove();
         ghosts.forEach(g => { if (g && g.element) g.element.remove(); });
-        ghosts = []; // Limpa o array
+        ghosts = [];
 
         try {
-            createBoard(); // Recria o tabuleiro HTML
+            createBoard();
             const playerSpawn = { x: 10, y: 16 };
             const ghostSpawns = [ { x: 9, y: 10, class: 'blinky' }, { x: 10, y: 10, class: 'pinky' }, { x: 11, y: 10, class: 'inky' }, { x: 10, y: 9, class: 'clyde' } ];
-            player = new Player(playerSpawn.x, playerSpawn.y, 1); // Cria novo player
-            ghostSpawns.forEach(spawn => { ghosts.push(new Ghost(spawn.class, spawn.x, spawn.y, 1)); }); // Cria novos fantasmas
+            player = new Player(playerSpawn.x, playerSpawn.y, 1);
+            ghostSpawns.forEach(spawn => { ghosts.push(new Ghost(spawn.class, spawn.x, spawn.y, 1)); });
             console.log(">>> Game reset finished successfully.");
         } catch (error) {
             console.error(">>> CRITICAL ERROR during resetGame (creating board/chars):", error);
@@ -156,14 +180,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Event Listeners e Chamada Inicial ---
-    document.addEventListener('keydown', handleInput);
+    // --- Event Listeners ---
+    console.log(">>> Adding event listeners.");
+    // Teclado
+    document.addEventListener('keydown', handleKeyboardInput);
+    // Botões de Toque (usando 'click' que funciona bem em mobile também)
+    btnUp.addEventListener('click', () => setDirectionAndStart('up'));
+    btnDown.addEventListener('click', () => setDirectionAndStart('down'));
+    btnLeft.addEventListener('click', () => setDirectionAndStart('left'));
+    btnRight.addEventListener('click', () => setDirectionAndStart('right'));
+    // Botões de Reset
     resetButton.addEventListener('click', resetGame);
     winResetButton.addEventListener('click', resetGame);
 
-    console.log(">>> Adding event listeners.");
-    // Chama resetGame para configurar o tabuleiro inicial
-    resetGame();
+    // --- Inicialização ---
+    resetGame(); // Configura o jogo inicialmente
     console.log(">>> Initial resetGame() call finished. Waiting for input.");
 
 }); // Fim do DOMContentLoaded
